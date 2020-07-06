@@ -41,8 +41,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.chrome.device.ml.customTab.CustomTabActivityHelper;
-import org.chrome.device.ml.experiments.Experiment;
+import org.chrome.device.ml.chrome.CustomTabActivityHelper;
 import org.chrome.device.ml.ml.TextClassification;
 import org.chrome.device.ml.ml.TextClassification.Result;
 import org.chrome.device.ml.service.MLService;
@@ -218,6 +217,10 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
     Log.v(TAG, "IPC");
 
     this.startService(mBindIntent);
+
+    for (String url: urlList) {
+      openCustomTab(url);
+    }
   }
 
   @Override
