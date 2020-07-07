@@ -41,7 +41,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.chrome.device.ml.chrome.CustomTabActivityHelper;
+import org.chrome.device.ml.chrome.CustomTabHandler;
 import org.chrome.device.ml.ml.TextClassification;
 import org.chrome.device.ml.ml.TextClassification.Result;
 import org.chrome.device.ml.service.MLService;
@@ -158,7 +158,6 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
     }
     unbindService(this);
     stopService(new Intent(ChromeActivity.this, MLService.class));
-
   }
 
   @Override
@@ -219,7 +218,9 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
     this.startService(mBindIntent);
 
     for (String url: urlList) {
-      openCustomTab(url);
+      CustomTabHandler tmp = new CustomTabHandler(this, url);
+      tmp.open();
+      break;
     }
   }
 
@@ -289,13 +290,5 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
   private void textboxAppend(String text) {
     resultTextView.append(text);
     scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
-  }
-
-  private void openCustomTab(String url) {
-    CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
-    intentBuilder.setShowTitle(true);
-
-    CustomTabActivityHelper.openCustomTab(
-            this, intentBuilder.build(), Uri.parse(url));
   }
 }

@@ -43,15 +43,16 @@ public class CustomTabActivityHelper implements ServiceConnectionCallback {
    */
   public static void openCustomTab(Activity activity,
                                    CustomTabsIntent customTabsIntent,
-                                   Uri uri) {
+                                   Uri uri,
+                                   CustomTabFallback fallback) {
     String packageName = CustomTabsHelper.getPackageNameToUse(activity);
 
     //If we cant find a package name, it means theres no browser that supports
     //Chrome Custom Tabs installed. So, we fallback to the webview
     if (packageName == null) {
-//      if (fallback != null) {
-//        fallback.openUri(activity, uri);
-//      }
+      if (fallback != null) {
+        fallback.openUri(activity, uri);
+      }
       Log.e(TAG, "packagename null");
     } else {
       customTabsIntent.intent.setPackage(packageName);
@@ -100,6 +101,7 @@ public class CustomTabActivityHelper implements ServiceConnectionCallback {
     if (mClient != null) return;
 
     String packageName = CustomTabsHelper.getPackageNameToUse(activity);
+    Log.v(TAG, "Package name: " + packageName);
     if (packageName == null) return;
 
     mConnection = new ServiceConnection(this);
@@ -124,6 +126,7 @@ public class CustomTabActivityHelper implements ServiceConnectionCallback {
     mClient = client;
     mClient.warmup(0L);
     if (mConnectionCallback != null) mConnectionCallback.onCustomTabsConnected();
+    Log.v(TAG, "service connected");
   }
 
   @Override
@@ -131,6 +134,7 @@ public class CustomTabActivityHelper implements ServiceConnectionCallback {
     mClient = null;
     mCustomTabsSession = null;
     if (mConnectionCallback != null) mConnectionCallback.onCustomTabsDisconnected();
+    Log.v(TAG, "service disconnected");
   }
 
   /**
