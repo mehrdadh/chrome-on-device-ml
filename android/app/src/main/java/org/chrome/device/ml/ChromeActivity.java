@@ -15,11 +15,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.browser.customtabs.CustomTabsIntent;
+
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -39,9 +38,11 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-import org.chrome.device.ml.chrome.CustomTabHandler;
+import org.chrome.device.ml.chrome.CustomTabActivity;
 import org.chrome.device.ml.ml.TextClassification;
 import org.chrome.device.ml.ml.TextClassification.Result;
 import org.chrome.device.ml.service.MLService;
@@ -72,6 +73,9 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
 
   /** Custom Tab **/
   private ArrayList<String> urlList;
+  private int urlNumber;
+  private boolean customTabsStarted;
+//  private Intent mCCTIntent;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -98,9 +102,13 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
     addItemsOnSpinner();
     addListenerOnSpinnerItemSelection();
 
-    mBindIntent = new Intent(ChromeActivity.this, MLService.class);
-    mBindIntent.setAction(RemoteService.class.getName());
+//    mBindIntent = new Intent(ChromeActivity.this, MLService.class);
+//    mBindIntent.setAction(RemoteService.class.getName());
 
+//    mCCTIntent = new Intent(ChromeActivity.this, CustomTabActivity.class);
+
+    urlNumber = 0;
+    customTabsStarted = false;
     urlList = new ArrayList<String>();
     try {
       urlList = Utils.getURLList(getApplicationContext().getAssets(), URL_PATH);
@@ -143,7 +151,16 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
       }
     };
 
-    bindService(mBindIntent, this, Context.BIND_AUTO_CREATE);
+//    bindService(mBindIntent, this, Context.BIND_AUTO_CREATE);
+//    bindService(mCCTIntent, this, Context.BIND_AUTO_CREATE);
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (urlNumber < urlList.size() & customTabsStarted) {
+      openCustomTabActivity();
+    }
   }
 
   @Override
@@ -156,8 +173,8 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
         Log.e(TAG, "Error unregister callback");
       }
     }
-    unbindService(this);
-    stopService(new Intent(ChromeActivity.this, MLService.class));
+//    unbindService(this);
+//    stopService(new Intent(ChromeActivity.this, MLService.class));
   }
 
   @Override
@@ -213,15 +230,12 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
   /** Handles button actions */
   private void buttonHandler() {
     textboxAppend("IPC\n");
-    Log.v(TAG, "IPC");
+//    this.startService(mBindIntent);
 
-    this.startService(mBindIntent);
-
-    for (String url: urlList) {
-      CustomTabHandler tmp = new CustomTabHandler(this, url);
-      tmp.open();
-      break;
-    }
+    urlNumber = 46;
+    customTabsStarted = true;
+//    Collections.shuffle(urlList);
+    openCustomTabActivity();
   }
 
   @Override
@@ -252,6 +266,18 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
         textboxAppend(textToShow);
       }
     );
+  }
+
+  private void openCustomTabActivity() {
+    if (urlNumber >= urlList.size()) {
+      Log.e(TAG, "URL index out of size");
+      return;
+    }
+    Intent tmp = new Intent(ChromeActivity.this, CustomTabActivity.class);
+    tmp.putExtra("url", urlList.get(urlNumber));
+    tmp.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    urlNumber++;
+    startActivity(tmp);
   }
 
   /** Send input text to TextClassificationClass and show the classify messages */
