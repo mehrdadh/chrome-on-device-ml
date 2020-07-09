@@ -18,7 +18,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -34,11 +33,9 @@ import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
-
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,19 +67,18 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
   private Intent mBindIntent;
   private Handler serviceHandler;
   private RemoteServiceCallback serviceCallback;
+  private boolean mlServiceConnected;
 
   /** Custom Tab **/
   private ArrayList<String> urlList;
   private int urlNumber;
   private boolean customTabsStarted;
-//  private Intent mCCTIntent;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
     Log.v(TAG, "onCreate");
-
+    setContentView(R.layout.activity_main);
     Toolbar toolbar = findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
@@ -98,14 +94,12 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
             });
     scrollView = findViewById(R.id.scroll_view);
     resultTextView = findViewById(R.id.result_text_view);
-
     addItemsOnSpinner();
     addListenerOnSpinnerItemSelection();
 
-//    mBindIntent = new Intent(ChromeActivity.this, MLService.class);
-//    mBindIntent.setAction(RemoteService.class.getName());
-
-//    mCCTIntent = new Intent(ChromeActivity.this, CustomTabActivity.class);
+    mlServiceConnected = false;
+    mBindIntent = new Intent(ChromeActivity.this, MLService.class);
+    mBindIntent.setAction(RemoteService.class.getName());
 
     urlNumber = 0;
     customTabsStarted = false;
@@ -121,7 +115,7 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
   @Override
   protected void onStart() {
     super.onStart();
-
+    Log.v(TAG, "onStart");
     serviceHandler = new Handler() {
       @Override public void handleMessage(Message msg) {
         switch (msg.what) {
@@ -151,13 +145,13 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
       }
     };
 
-//    bindService(mBindIntent, this, Context.BIND_AUTO_CREATE);
-//    bindService(mCCTIntent, this, Context.BIND_AUTO_CREATE);
+    bindService(mBindIntent, this, Context.BIND_AUTO_CREATE);
   }
 
   @Override
   protected void onResume() {
     super.onResume();
+    Log.v(TAG, "onResume");
     if (urlNumber < urlList.size() & customTabsStarted) {
       openCustomTabActivity();
     }
@@ -166,6 +160,8 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
   @Override
   protected void onStop() {
     super.onStop();
+    Log.v(TAG, "onStop");
+
     if (mService != null) {
       try {
         mService.unregisterCallback(serviceCallback);
@@ -173,8 +169,8 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
         Log.e(TAG, "Error unregister callback");
       }
     }
-//    unbindService(this);
-//    stopService(new Intent(ChromeActivity.this, MLService.class));
+    unbindService(this);
+    stopService(new Intent(ChromeActivity.this, MLService.class));
   }
 
   @Override
@@ -230,9 +226,9 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
   /** Handles button actions */
   private void buttonHandler() {
     textboxAppend("IPC\n");
-//    this.startService(mBindIntent);
+    this.startService(mBindIntent);
 
-    urlNumber = 46;
+    urlNumber = 0;
     customTabsStarted = true;
 //    Collections.shuffle(urlList);
     openCustomTabActivity();
@@ -242,7 +238,6 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
   public void onServiceConnected(ComponentName componentName, IBinder service) {
     Log.v(TAG, "Service connected.");
     mService = RemoteService.Stub.asInterface(service);
-
     /** Monitor service */
     try{
       mService.registerCallback(serviceCallback);
@@ -254,7 +249,7 @@ public class ChromeActivity extends AppCompatActivity implements ServiceConnecti
   @Override
   public void onServiceDisconnected(ComponentName componentName) {
     Log.e(TAG, "Service has unexpectedly disconnected");
-    mService = null;
+//    mService = null;
   }
 
   /** Show experiment result in textbox */
