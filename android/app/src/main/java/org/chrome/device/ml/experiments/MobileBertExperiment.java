@@ -15,6 +15,8 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,38 +68,44 @@ public class MobileBertExperiment implements Experiment {
   /** Evaluates Bert model with contents and questions. */
   public void evaluate(int numberOfContents) {
     timing.clear();
-    int contentsRun = Math.min(numberOfContents, datasetClient.getNumberOfContents());
+    int contentsRun;
+    if (numberOfContents > 0) {
+      contentsRun = Math.min(numberOfContents, datasetClient.getNumberOfContents());
+    } else {
+      contentsRun = datasetClient.getNumberOfContents();
+    }
     handler.post(
-            () -> {
-              for (int i = 0; i < contentsRun; i++) {
-                /** fetch a content. */
-                final String content = datasetClient.getContent(i);
-                String[] question_set = datasetClient.getQuestions(i);
+      () -> {
+        for (int i = 0; i < contentsRun; i++) {
+          /** fetch a content. */
+          Log.v(TAG, "new content");
+          final String content = datasetClient.getContent(i);
+          String[] question_set = datasetClient.getQuestions(i);
 
-                for (int j = 0; j < question_set.length; j++) {
-                  /** fetch a question. */
-                  String question = question_set[j];
+          for (int j = 0; j < question_set.length; j++) {
+            /** fetch a question. */
+            String question = question_set[j];
 
-                  /** Add question mark to match with the dataset. */
-                  if (!question.endsWith("?")) {
-                    question += '?';
-                  }
-
-                  /** Run model and store timing. */
-                  final String questionToAsk = question;
-                  long beforeTime = System.currentTimeMillis();
-                  final List<QaAnswer> answers = qaClient.predict(questionToAsk, content);
-                  long afterTime = System.currentTimeMillis();
-                  Double contentTime = new Double((afterTime - beforeTime) / 1000.0);
-                  timing.add(contentTime);
-                }
-              }
-              /** Send message to UI thread. */
-              Message doneMsg = new Message();
-              doneMsg.what = 0;
-              doneMsg.obj = "Evaluation Finished";
-              this.UIHandler.sendMessage(new Message());
+            /** Add question mark to match with the dataset. */
+            if (!question.endsWith("?")) {
+              question += '?';
             }
+
+            /** Run model and store timing. */
+            final String questionToAsk = question;
+            long beforeTime = System.currentTimeMillis();
+            final List<QaAnswer> answers = qaClient.predict(questionToAsk, content);
+            long afterTime = System.currentTimeMillis();
+            Double contentTime = new Double((afterTime - beforeTime) / 1000.0);
+            timing.add(contentTime);
+          }
+        }
+        /** Send message to UI thread. */
+        Message doneMsg = new Message();
+        doneMsg.what = 0;
+        doneMsg.obj = "Evaluation Finished";
+        this.UIHandler.sendMessage(new Message());
+      }
     );
   }
 

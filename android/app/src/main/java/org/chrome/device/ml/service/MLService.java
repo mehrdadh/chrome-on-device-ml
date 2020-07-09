@@ -21,6 +21,8 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+
 import android.os.Process;
 import java.util.ArrayList;
 
@@ -65,13 +67,13 @@ public class MLService extends Service {
 
     @Override
     public void registerCallback(RemoteServiceCallback cb) throws RemoteException {
-      Log.v(TAG, "Service callback register.");
+      Log.v(TAG, "Callback register.");
       if (cb != null) mCallbacks.register(cb);
     }
 
     @Override
     public void unregisterCallback(RemoteServiceCallback cb) throws RemoteException {
-      Log.v(TAG, "Serivce callback unregister.");
+      Log.v(TAG, "Callback unregister.");
       if (cb != null) mCallbacks.unregister(cb);
     }
   };
@@ -109,6 +111,8 @@ public class MLService extends Service {
 
   @Override
   public void onDestroy() {
+    Log.i(TAG, "onDestroy");
+
     for (int i=0; i<MODELS_SIZE; i++) {
       ((Experiment)experiments.get(i)).close();
     }
@@ -124,6 +128,7 @@ public class MLService extends Service {
         case MSG_REPORT: {
           /** Broadcast to all clients the new value. **/
           final int N = mCallbacks.beginBroadcast();
+          Log.v(TAG, "broadcasting...");
           for (int i=0; i<N; i++) {
             try {
               mCallbacks.getBroadcastItem(i).timeChanged(expTime);
@@ -147,14 +152,9 @@ public class MLService extends Service {
   }
 
   private void experimentRun() {
-    int contents = 1;
-    String texttoShow = "Running contents: " + contents + "\n";
-    texttoShow += "...\n";
-    Log.v(TAG, texttoShow);
-
     expHandler.post(
       () -> {
-        ((Experiment)experiments.get(modelSelection)).evaluate(contents);
+        ((Experiment)experiments.get(modelSelection)).evaluate(1);
       }
     );
   }

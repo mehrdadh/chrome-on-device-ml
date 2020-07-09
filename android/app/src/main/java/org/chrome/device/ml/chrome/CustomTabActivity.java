@@ -31,7 +31,7 @@ public class CustomTabActivity extends Activity {
   public static final int MSG_CLIENT_OPEN  = 0;
   public static final int MSG_CLIENT_CLOSED = 1;
 
-  private final String TAG = "CutomeTabHanlder";
+  private final String TAG = "CutomeTabActivity";
   private CustomTabsIntent.Builder intentBuilder;
   private CustomTabActivityHelper mCustomTabActivityHelper;
   private CustomTabsCallback mCustomTabsCallback;
