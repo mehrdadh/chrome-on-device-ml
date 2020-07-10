@@ -4,4 +4,6 @@
     <string name="ch_ml_button_text" translatable="false">Run</string>
     <string name="ml_service_process" translatable="false">:mlService</string>
     <string name="ml_service_label" translatable="false">MLService</string>
+    <string name="ml_service_back_process" translatable="false">:mlServiceBackground</string>
+    <string name="ml_service_back_label" translatable="false">MLServiceBackground</string>
 </resources>

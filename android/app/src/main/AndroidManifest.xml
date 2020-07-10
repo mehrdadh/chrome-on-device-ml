@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="org.chrome.device.ml">
 
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
   <application
     android:allowBackup="true"
     android:icon="@mipmap/ic_launcher"
@@ -22,11 +24,12 @@
     </activity>
 
     <activity android:name="org.chrome.device.ml.chrome.CustomTabActivity"
-              android:label="Customized UI Chrome Custom Tab"
-              android:parentActivityName="org.chrome.device.ml.ChromeActivity" >
-              <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.chrome.device.ml.ChromeActivity" />
+      android:launchMode="standard"
+      android:label="Customized UI Chrome Custom Tab"
+      android:parentActivityName="org.chrome.device.ml.ChromeActivity" >
+      <meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value="org.chrome.device.ml.ChromeActivity" />
     </activity>
 
     <service
@@ -34,6 +37,17 @@
       android:icon="@mipmap/ic_launcher"
       android:label="@string/ml_service_label"
       android:process="@string/ml_service_process"
+      android:enabled="true"
+      android:exported="true"
+    > </service>
+
+    <service
+        android:name="org.chrome.device.ml.service.MLServiceBackground"
+        android:permission="android.permission.BIND_JOB_SERVICE"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/ml_service_back_label"
+        android:process="@string/ml_service_back_process"
+        android:exported="false"
     > </service>
 
   </application>
