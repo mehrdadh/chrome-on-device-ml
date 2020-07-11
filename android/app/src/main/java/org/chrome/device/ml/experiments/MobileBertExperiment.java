@@ -52,17 +52,17 @@ public class MobileBertExperiment implements Experiment {
 
   public void initialize() {
     handler.post(
-            () -> {
-              qaClient.loadModel();
-              qaClient.loadDictionary();
-            });
+      () -> {
+        qaClient.loadModel();
+        qaClient.loadDictionary();
+      });
   }
 
   public void close() {
     handler.post(
-            () -> {
-              qaClient.close();
-            });
+      () -> {
+        qaClient.close();
+      });
   }
 
   /** Evaluates Bert model with contents and questions. */
