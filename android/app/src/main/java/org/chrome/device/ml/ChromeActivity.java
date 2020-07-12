@@ -282,6 +282,7 @@ public class ChromeActivity extends AppCompatActivity {
         expHandler = new Handler(Looper.getMainLooper()) {
           @Override
           public void handleMessage(Message msg) {
+            mobileBert.contentTimeCSVWrite();
             textboxAppend("Time: " + mobileBert.getTime() + "\n");
           }
         };
@@ -290,7 +291,6 @@ public class ChromeActivity extends AppCompatActivity {
           () -> {
             mobileBert.initialize();
             mobileBert.evaluate(0);
-            mobileBert.contentTimeCSVWrite();
           }
         );
         break;

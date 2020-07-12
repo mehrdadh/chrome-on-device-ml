@@ -15,5 +15,5 @@ public interface Experiment {
   public void initialize();
   public void close();
   public void evaluate(int numberOfContents);
-  public double getTime();
+  public int getTime();
 }

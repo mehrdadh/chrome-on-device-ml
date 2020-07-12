@@ -104,7 +104,8 @@ public class MobileBertExperiment implements Experiment {
             long beforeTime = System.currentTimeMillis();
             final List<QaAnswer> answers = qaClient.predict(questionToAsk, content);
             long afterTime = System.currentTimeMillis();
-            Double contentTime = new Double((afterTime - beforeTime) / 1000.0);
+            // store time in milliseconds
+            Double contentTime = new Double(afterTime - beforeTime);
             timing[i].add(contentTime);
           }
         }
@@ -117,7 +118,8 @@ public class MobileBertExperiment implements Experiment {
     );
   }
 
-  public double getTime() {
+  // average time of all contents in milliseconds
+  public int getTime() {
     double time = 0;
     int total = 0;
     for (int i=0; i<this.timing.length; i++) {
@@ -127,7 +129,7 @@ public class MobileBertExperiment implements Experiment {
         total++;
       }
     }
-    return time/total;
+    return new Double(time/total).intValue();
   }
 
   public void contentTimeCSVWrite() {
@@ -187,7 +189,7 @@ public class MobileBertExperiment implements Experiment {
     }
     // if experiment did not run the timing would be null
     if (timing == null) {
-      Log.i(TAG, "Timing is null");
+      Log.e(TAG, "Timing is null");
       return;
     }
 
@@ -195,19 +197,26 @@ public class MobileBertExperiment implements Experiment {
     try {
       FileWriter fileWrite = new FileWriter(file, false);
       csvWriter = new CSVWriter(fileWrite);
+      String[] title = {"Number", "Time", "Num of Questions"};
+      csvWriter.writeNext(title);
       Integer contentCounter = 0;
       for (ArrayList<Double> content: timing) {
         Double average = new Double(0);
         for (Double time: content) {
           average += time;
         }
-        average = average / content.size();
-        // counter number for content, average time
-        String[] data = {contentCounter.toString(), average.toString()};
+        average = average / content.size() * 1.0;
+        // counter, average time, number of questions
+        String[] data = {contentCounter.toString(),
+                new Integer(average.intValue()).toString(),
+                new Integer(content.size()).toString()};
         csvWriter.writeNext(data);
         contentCounter++;
       }
+      String[] total = {"Total Average", new Integer(getTime()).toString(), ""};
+      csvWriter.writeNext(total);
       csvWriter.close();
+      Log.i(TAG, "Data is written to: " + file.getName());
     } catch (IOException e) {
       e.printStackTrace();
     }
