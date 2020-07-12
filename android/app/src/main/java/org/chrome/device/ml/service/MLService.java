@@ -21,8 +21,6 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
-
 import android.os.Process;
 import java.util.ArrayList;
 
@@ -31,8 +29,9 @@ import org.chrome.device.ml.experiments.MobileBertExperiment;
 import org.chrome.device.ml.service.RemoteService;
 import org.chrome.device.ml.service.RemoteServiceCallback;
 
+/** Run ML task on a service. */
 public class MLService extends Service {
-  private final static String TAG = "MLService";
+  private static final String TAG = "MLService";
   private static final int MSG_REPORT = 1;
   private static final int MODELS_SIZE = 1;
 
@@ -41,11 +40,7 @@ public class MLService extends Service {
   private double expTime;
   private int modelSelection;
 
-  /**
-   * This is a list of callbacks that have been registered with the
-   * service.  Note that this is package scoped (instead of private) so
-   * that it can be accessed more efficiently from inner classes.
-   */
+  // This is a list of callbacks that have been registered with the service
   final RemoteCallbackList<RemoteServiceCallback> mCallbacks
           = new RemoteCallbackList<RemoteServiceCallback>();
 
@@ -81,6 +76,7 @@ public class MLService extends Service {
   @Override
   public void onCreate() {
     super.onCreate();
+
     modelSelection = 0;
     expHandler = new Handler(Looper.getMainLooper()) {
       @Override
@@ -116,19 +112,14 @@ public class MLService extends Service {
     for (int i=0; i<MODELS_SIZE; i++) {
       ((Experiment)experiments.get(i)).close();
     }
-
-    /** Remove the next pending message to increment the counter, stoppin the increment loop. **/
-    mHandler.removeMessages(MSG_REPORT);
   }
 
   private final Handler mHandler = new Handler() {
     @Override public void handleMessage(Message msg) {
-      Log.v(TAG, "msg.what: " + msg.what);
       switch (msg.what) {
         case MSG_REPORT: {
-          /** Broadcast to all clients the new value. **/
+          // Broadcast to all clients the new value
           final int N = mCallbacks.beginBroadcast();
-          Log.v(TAG, "broadcasting...");
           for (int i=0; i<N; i++) {
             try {
               mCallbacks.getBroadcastItem(i).timeChanged(expTime);
@@ -144,7 +135,7 @@ public class MLService extends Service {
     }
   };
 
-  /** Hanldle messages from experiments */
+  // Handles messages from experiments
   private void experimentMessageHandler(Message msg) {
     expTime = ((Experiment)experiments.get(modelSelection)).getTime();
     Log.v(TAG, "Time: + " + expTime);
@@ -154,7 +145,7 @@ public class MLService extends Service {
   private void experimentRun() {
     expHandler.post(
       () -> {
-        ((Experiment)experiments.get(modelSelection)).evaluate(1);
+        ((Experiment)experiments.get(modelSelection)).evaluate(0);
       }
     );
   }
