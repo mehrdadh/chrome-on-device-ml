@@ -231,6 +231,7 @@ public class ChromeActivity extends AppCompatActivity {
       public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         modelSelection = i;
       }
+      
       @Override
       public void onNothingSelected(AdapterView<?> adapterView) {
         modelSelection = 0;
@@ -242,6 +243,7 @@ public class ChromeActivity extends AppCompatActivity {
       public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         APP_MODE = i;
       }
+
       @Override
       public void onNothingSelected(AdapterView<?> adapterView) {
         APP_MODE = 0;
