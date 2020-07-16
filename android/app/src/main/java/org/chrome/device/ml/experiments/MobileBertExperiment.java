@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
+
 import com.opencsv.CSVWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -39,6 +40,7 @@ public class MobileBertExperiment implements Experiment {
   private LoadDatasetClient datasetClient;
   private QaClient qaClient;
   private ArrayList<Double>[] timing;
+  private int appMode;
 
   public MobileBertExperiment(Context context, Handler handler) {
     this.context = context;
@@ -69,6 +71,11 @@ public class MobileBertExperiment implements Experiment {
   }
 
   // Evaluates Bert model with contents and questions
+  /**
+   * Evaluate the ML model against contents and questions
+   * @param numberOfContents  Number of contents that would be evaluated. If zero, all contents
+   *                          will be evaluated.
+   */
   public void evaluate(int numberOfContents) {
     int contentsRun;
     if (numberOfContents > 0) {
@@ -89,7 +96,7 @@ public class MobileBertExperiment implements Experiment {
           // fetch a content
           final String content = datasetClient.getContent(i);
           String[] question_set = datasetClient.getQuestions(i);
-
+          Log.i(TAG, "Content: " + i);
           for (int j = 0; j < question_set.length; j++) {
             // fetch a question
             String question = question_set[j];
@@ -133,12 +140,12 @@ public class MobileBertExperiment implements Experiment {
   }
 
   public void contentTimeCSVWrite() {
+    this.appMode = 0;
     String appDataDir = android.os.Environment.getExternalStorageDirectory().getAbsolutePath();
     String baseDir;
-    int appMode = ChromeActivity.getAppMode();
     String fileName;
     // set directory and file name
-    switch (appMode) {
+    switch (this.appMode) {
       case ChromeActivity.APP_MODE_ML:
         fileName = "content_timing_ml.csv";
         baseDir = appDataDir + File.separator + "ml";
@@ -197,7 +204,7 @@ public class MobileBertExperiment implements Experiment {
     try {
       FileWriter fileWrite = new FileWriter(file, false);
       csvWriter = new CSVWriter(fileWrite);
-      String[] title = {"Number", "Time", "Num of Questions"};
+      String[] title = {"Number", "Time", "Questions"};
       csvWriter.writeNext(title);
       Integer contentCounter = 0;
       for (ArrayList<Double> content: timing) {

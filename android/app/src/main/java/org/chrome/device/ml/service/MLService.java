@@ -76,6 +76,7 @@ public class MLService extends Service {
   @Override
   public void onCreate() {
     super.onCreate();
+    Log.v(TAG, "onCreate");
 
     modelSelection = 0;
     expHandler = new Handler(Looper.getMainLooper()) {
@@ -102,11 +103,13 @@ public class MLService extends Service {
   @Nullable
   @Override
   public IBinder onBind(Intent intent) {
+    Log.v(TAG, "onBind");
     return mbinder;
   }
 
   @Override
   public void onDestroy() {
+    super.onDestroy();
     Log.i(TAG, "onDestroy");
 
     for (int i=0; i<MODELS_SIZE; i++) {
@@ -137,6 +140,7 @@ public class MLService extends Service {
 
   // Handles messages from experiments
   private void experimentMessageHandler(Message msg) {
+    ((Experiment)experiments.get(modelSelection)).contentTimeCSVWrite();
     expTime = ((Experiment)experiments.get(modelSelection)).getTime();
     Log.v(TAG, "Time: + " + expTime);
     mHandler.sendEmptyMessage(MSG_REPORT);

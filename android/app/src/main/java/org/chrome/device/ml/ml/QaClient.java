@@ -39,7 +39,7 @@ public class QaClient implements AutoCloseable {
 
   private static final int MAX_ANS_LEN = 32;
   private static final int MAX_QUERY_LEN = 64;
-  private static final int MAX_SEQ_LEN = 384;
+  private static final int MAX_SEQ_LEN = 128;
   private static final boolean DO_LOWER_CASE = true;
   private static final int PREDICT_ANS_NUM = 5;
   private static final int NUM_LITE_THREADS = 4;

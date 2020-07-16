@@ -16,4 +16,5 @@ public interface Experiment {
   public void close();
   public void evaluate(int numberOfContents);
   public int getTime();
+  public void contentTimeCSVWrite();
 }

@@ -32,7 +32,6 @@ public class MLServiceBackground extends JobIntentService {
 
   private Handler expHandler;
   private ArrayList experiments = null;
-  private double expTime;
   private int modelSelection;
 
   public static void enqueueWork(Context context, Intent work) {
@@ -64,6 +63,11 @@ public class MLServiceBackground extends JobIntentService {
   }
 
   @Override
+  public int onStartCommand(Intent intent, int flags, int startId) {
+    return START_STICKY;
+  }
+
+  @Override
   public void onDestroy() {
     super.onDestroy();
     for (int i=0; i<MODELS_SIZE; i++) {
@@ -73,14 +77,15 @@ public class MLServiceBackground extends JobIntentService {
 
   // Handles messages from experiments
   private void experimentMessageHandler(Message msg) {
-    expTime = ((Experiment)experiments.get(modelSelection)).getTime();
+    ((Experiment)experiments.get(modelSelection)).contentTimeCSVWrite();
+    int expTime = ((Experiment)experiments.get(modelSelection)).getTime();
     Log.v(TAG, "Time: + " + expTime);
   }
 
   private void experimentRun() {
     expHandler.post(
       () -> {
-        ((Experiment)experiments.get(modelSelection)).evaluate(1);
+        ((Experiment)experiments.get(modelSelection)).evaluate(0);
       }
     );
   }
