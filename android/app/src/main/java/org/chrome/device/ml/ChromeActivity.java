@@ -315,7 +315,7 @@ public class ChromeActivity extends AppCompatActivity {
         textboxAppend("Running ML on service with static web page...");
         Intent mlService = new Intent(ChromeActivity.this, MLService.class);
         mlService.setAction(RemoteService.class.getName());
-        bindService(mlService, mServiceConnection, Context.BIND_AUTO_CREATE);
+//        bindService(mlService, mServiceConnection, Context.BIND_AUTO_CREATE);
         this.startService(mlService);
 
         String url = "https://www.pinterest.com";
@@ -331,7 +331,11 @@ public class ChromeActivity extends AppCompatActivity {
       case APP_MODE_WEB_CONTINUES:
         textboxAppend("mode: " + APP_MODE + "\n");
         break;
+      default:
+        textboxAppend("Wrong mode selected.\n");
+        Log.e(TAG, "Wrong mode selected.");
     }
+
 //    urlNumber = 35;
 //    customTabsStarted = true;
 //    Collections.shuffle(urlList);
