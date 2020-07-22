@@ -12,6 +12,7 @@ android/app/build
 .DS_Store
 *.log
 *.tar.gz
+build/
 
 #python
 __pycache__
