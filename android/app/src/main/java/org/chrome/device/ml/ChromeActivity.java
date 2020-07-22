@@ -12,7 +12,6 @@ limitations under the License.
 package org.chrome.device.ml;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -41,9 +40,9 @@ import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import java.io.IOException;
-import java.net.URI;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.chrome.device.ml.chrome.CustomTabActivity;
@@ -63,9 +62,7 @@ public class ChromeActivity extends AppCompatActivity {
   public static final int APP_MODE_ML_SERVICE = 1;
   public static final int APP_MODE_ML_SERVICE_BACKGROUND = 2;
   public static final int APP_MODE_WEB_STATIC = 3;
-  public static final int APP_MODE_WEB_SCROLL = 4;
-  public static final int APP_MODE_WEB_CONTINUES = 5;
-  public static int APP_MODE;
+  public static final int APP_MODE_WEB_CONTINUES = 4;
 
   private Button classifyButton;
   private Handler mhandler;
@@ -75,6 +72,7 @@ public class ChromeActivity extends AppCompatActivity {
   private Spinner modelSpinner;
   private int modelSelection;
   private Spinner appModeSpinner;
+  public int appMode;
 
   // ML Service
   private RemoteService mService;
@@ -179,7 +177,7 @@ public class ChromeActivity extends AppCompatActivity {
   protected void onResume() {
     super.onResume();
     Log.v(TAG, "onResume");
-    if (urlNumber < urlList.size() & customTabsStarted) {
+    if (customTabsStarted) {
       openCustomTabActivity();
     }
   }
@@ -189,18 +187,18 @@ public class ChromeActivity extends AppCompatActivity {
     super.onStop();
     Log.v(TAG, "onStop");
 
-//    if (mService != null) {
-//      try {
-//        mService.unregisterCallback(serviceCallback);
-//      } catch (RemoteException e) {
-//        Log.e(TAG, "Error unregister callback");
-//      }
-//    }
-//    if (isMyServiceRunning(MLService.class)) {
-//      Log.i(TAG, "Closing ML service.");
-//      unbindService(mServiceConnection);
-//      stopService(new Intent(ChromeActivity.this, MLService.class));
-//    }
+    if (mService != null) {
+      try {
+        mService.unregisterCallback(serviceCallback);
+      } catch (RemoteException e) {
+        Log.e(TAG, "Error unregister callback");
+      }
+    }
+    if (isMyServiceRunning(MLService.class) && customTabsStarted) {
+      Log.i(TAG, "Closing ML service.");
+      unbindService(mServiceConnection);
+      stopService(new Intent(ChromeActivity.this, MLService.class));
+    }
   }
 
   @Override
@@ -231,7 +229,7 @@ public class ChromeActivity extends AppCompatActivity {
       public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         modelSelection = i;
       }
-      
+
       @Override
       public void onNothingSelected(AdapterView<?> adapterView) {
         modelSelection = 0;
@@ -241,18 +239,14 @@ public class ChromeActivity extends AppCompatActivity {
     appModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
       @Override
       public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        APP_MODE = i;
+        appMode = i;
       }
 
       @Override
       public void onNothingSelected(AdapterView<?> adapterView) {
-        APP_MODE = 0;
+        appMode = 0;
       }
     });
-  }
-
-  public static int getAppMode() {
-    return APP_MODE;
   }
 
   private void addItemsOnSpinner() {
@@ -269,8 +263,8 @@ public class ChromeActivity extends AppCompatActivity {
 
     // app mode spinner
     String [] appModes = {"ML Task w/o Service", "ML Task w/ Service",
-            "ML Task w/ Background Service", "Background Service, Static Web",
-            "Background Service, Scrolling Web", "Background Service, Continues Web"};
+            "ML Task w/ Background Service", "Service, Static Web",
+            "Service, Continues Web"};
     List<String> modeList = new ArrayList<String>();
     for (String item: appModes) {
       modeList.add(item);
@@ -284,7 +278,8 @@ public class ChromeActivity extends AppCompatActivity {
 
   // Handles button actions
   private void buttonHandler() {
-    switch (APP_MODE) {
+    Intent mlService;
+    switch (appMode) {
       case APP_MODE_ML:
         textboxAppend("Running ML...\n");
         expHandler = new Handler(Looper.getMainLooper()) {
@@ -304,10 +299,10 @@ public class ChromeActivity extends AppCompatActivity {
         break;
       case APP_MODE_ML_SERVICE:
         textboxAppend("Running ML on service...\n");
-        Intent service = new Intent(ChromeActivity.this, MLService.class);
-        service.setAction(RemoteService.class.getName());
-        bindService(service, mServiceConnection, Context.BIND_AUTO_CREATE);
-        this.startService(service);
+        mlService = new Intent(ChromeActivity.this, MLService.class);
+        mlService.setAction(RemoteService.class.getName());
+        bindService(mlService, mServiceConnection, Context.BIND_AUTO_CREATE);
+        this.startService(mlService);
         break;
       case APP_MODE_ML_SERVICE_BACKGROUND:
         textboxAppend("Running ML on background service...\n");
@@ -315,7 +310,7 @@ public class ChromeActivity extends AppCompatActivity {
         break;
       case APP_MODE_WEB_STATIC:
         textboxAppend("Running ML on service with static web page...");
-        Intent mlService = new Intent(ChromeActivity.this, MLService.class);
+        mlService = new Intent(ChromeActivity.this, MLService.class);
         mlService.setAction(RemoteService.class.getName());
 //        bindService(mlService, mServiceConnection, Context.BIND_AUTO_CREATE);
         this.startService(mlService);
@@ -325,22 +320,22 @@ public class ChromeActivity extends AppCompatActivity {
         CustomTabsIntent cctIntent = builder.build();
         CustomTabActivityHelper.openCustomTab(this, cctIntent, Uri.parse(url), null);
         break;
-      case APP_MODE_WEB_SCROLL:
-        textboxAppend("mode: " + APP_MODE + "\n");
-        //start background service
-        //open a tab, scroll on the page
-        break;
       case APP_MODE_WEB_CONTINUES:
-        textboxAppend("mode: " + APP_MODE + "\n");
+        textboxAppend("Running ML on service with continues web loading...");
+        mlService = new Intent(ChromeActivity.this, MLService.class);
+        mlService.setAction(RemoteService.class.getName());
+        bindService(mlService, mServiceConnection, Context.BIND_AUTO_CREATE);
+        this.startService(mlService);
+
+        urlNumber = 0;
+        customTabsStarted = true;
+        Collections.shuffle(urlList);
+        openCustomTabActivity();
         break;
       default:
         textboxAppend("Wrong mode selected.\n");
         Log.e(TAG, "Wrong mode selected.");
     }
-
-//    urlNumber = 35;
-//    customTabsStarted = true;
-//    Collections.shuffle(urlList);
   }
 
   // Show experiment result in textbox
@@ -354,15 +349,13 @@ public class ChromeActivity extends AppCompatActivity {
     );
   }
 
+  // create a custom tab from the url list
   private void openCustomTabActivity() {
-    if (urlNumber >= urlList.size()) {
-      Log.e(TAG, "URL index out of size");
-      return;
-    }
     Intent tmp = new Intent(ChromeActivity.this, CustomTabActivity.class);
     tmp.putExtra("url", urlList.get(urlNumber));
     tmp.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     urlNumber++;
+    urlNumber = urlNumber % urlList.size();
     startActivity(tmp);
   }
 

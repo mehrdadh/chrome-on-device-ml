@@ -31,7 +31,7 @@ import org.chrome.device.ml.ml.QaClient;
 
 public class MobileBertExperiment implements Experiment {
   private static final String TAG = "MobileBertExperiment";
-  private static final String MODEL_PATH = "bert_model.tflite";
+  private static final String MODEL_PATH = "bert_model_float_128.tflite";
 
   private final Context context;
   private Handler handler;
@@ -40,7 +40,6 @@ public class MobileBertExperiment implements Experiment {
   private LoadDatasetClient datasetClient;
   private QaClient qaClient;
   private ArrayList<Double>[] timing;
-  private int appMode;
 
   public MobileBertExperiment(Context context, Handler handler) {
     this.context = context;
@@ -140,42 +139,10 @@ public class MobileBertExperiment implements Experiment {
   }
 
   public void contentTimeCSVWrite() {
-    this.appMode = 0;
     String appDataDir = android.os.Environment.getExternalStorageDirectory().getAbsolutePath();
-    String baseDir;
-    String fileName;
-    // set directory and file name
-    switch (this.appMode) {
-      case ChromeActivity.APP_MODE_ML:
-        fileName = "content_timing_ml.csv";
-        baseDir = appDataDir + File.separator + "ml";
-        break;
-      case ChromeActivity.APP_MODE_ML_SERVICE:
-        fileName = "content_timing_ml_service.csv";
-        baseDir = appDataDir + File.separator + "ml_service";
-        break;
-      case ChromeActivity.APP_MODE_ML_SERVICE_BACKGROUND:
-        fileName = "content_timing_ml_background.csv";
-        baseDir = appDataDir + File.separator + "ml_service_background";
-        break;
-      case ChromeActivity.APP_MODE_WEB_STATIC:
-        fileName = "content_timing_ml_web_static.csv";
-        baseDir = appDataDir + File.separator + "ml_web_static";
-        break;
-      case ChromeActivity.APP_MODE_WEB_SCROLL:
-        fileName = "content_timing_ml_web_scroll.csv";
-        baseDir = appDataDir + File.separator + "ml_web_scroll";
-        break;
-      case ChromeActivity.APP_MODE_WEB_CONTINUES:
-        fileName = "content_timing_ml_web_continues.csv";
-        baseDir = appDataDir + File.separator + "ml_web_continues";
-        break;
-      default:
-        baseDir = "";
-        fileName = "";
-        Log.e(TAG, "Error: App mode");
-        return;
-    }
+    String baseDir = appDataDir + File.separator + "ml";
+    String fileName = "content_timing_ml.csv";
+
     // check if directory exitst
     File dirFile = new File(baseDir);
     if (!dirFile.isDirectory()) {
